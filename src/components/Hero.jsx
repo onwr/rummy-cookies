@@ -1,20 +1,107 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { HiOutlineChevronLeft, HiOutlineChevronRight } from 'react-icons/hi'
 
 const Hero = () => {
   const { t } = useTranslation()
+  const [currentSlide, setCurrentSlide] = useState(0)
+
+  const slides = [
+    {
+      id: 1,
+      image: "/images/arkaplan.png",
+      alt: "El yapımı kurabiyeler"
+    },
+    {
+      id: 2,
+      image: "/images/arkaplan2.avif", 
+      alt: "Özel tasarım kurabiyeler"
+    },
+    {
+      id: 3,
+      image: "/images/arkaplan3.jpg",
+      alt: "Doğum günü kurabiyeleri"
+    }
+  ]
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+  }
+
+  // Auto-play carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      nextSlide()
+    }, 15000    ) // 5 saniyede bir değişir
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <section className="w-full">
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-br from-[#fee2ba]/40 via-white to-[#fef3e2]/40 py-24">
-        <div className="max-w-7xl mx-auto px-6">
+      {/* Hero Banner with Carousel */}
+      <div className="relative bg-gradient-to-br from-[#fee2ba]/40 via-white to-[#fef3e2]/40 py-24 overflow-hidden">
+        {/* Carousel Background */}
+        <div className="absolute inset-0">
+          {slides.map((slide, index) => (
+            <div
+              key={slide.id}
+              className={`absolute inset-0 transition-opacity duration-1000 ${
+                index === currentSlide ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <div className="absolute inset-0 bg-black/20"></div>
+              <img
+                src={slide.image}
+                alt={slide.alt}
+                className="w-full h-full blur opacity-25 object-cover"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Carousel Controls */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-[#b5755c] p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+        >
+          <HiOutlineChevronLeft className="w-6 h-6" />
+        </button>
+        
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-[#b5755c] p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+        >
+          <HiOutlineChevronRight className="w-6 h-6" />
+        </button>
+
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex space-x-3">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                index === currentSlide 
+                  ? 'bg-[#b5755c] scale-125' 
+                  : 'bg-white/60 hover:bg-white/80'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Content - Fixed and unchanged */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6">
           <div className="text-center mb-20">
-            <h1 className="text-6xl md:text-8xl font-serif text-[#b5755c] mb-8 leading-tight">
+            <h1 className="text-6xl md:text-8xl font-serif text-white mb-8 leading-tight">
               {t('hero.title.main')}<br />
-              <span className="text-[#b5755c]/70 font-light">{t('hero.title.sub')}</span>
+              <span className="text-[#b5755c] font-light">{t('hero.title.sub')}</span>
             </h1>
-            <p className="text-xl md:text-2xl text-[#b5755c]/60 font-light mb-10 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-[#b5755c] font-light mb-10 max-w-4xl mx-auto leading-relaxed">
               {t('hero.subtitle')}
             </p>
           </div>
@@ -29,36 +116,7 @@ const Hero = () => {
             </button>
           </div>
 
-          {/* Trust Indicators */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#fee2ba] to-[#fef3e2] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
-                <svg className="w-10 h-10 text-[#b5755c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#b5755c] mb-3">{t('hero.trust.handmade')}</h3>
-              <p className="text-[#b5755c]/60 text-base leading-relaxed">{t('hero.trust.handmade.desc')}</p>
-            </div>
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#fee2ba] to-[#fef3e2] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
-                <svg className="w-10 h-10 text-[#b5755c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#b5755c] mb-3">{t('hero.trust.delivery')}</h3>
-              <p className="text-[#b5755c]/60 text-base leading-relaxed">{t('hero.trust.delivery.desc')}</p>
-            </div>
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#fee2ba] to-[#fef3e2] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
-                <svg className="w-10 h-10 text-[#b5755c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#b5755c] mb-3">{t('hero.trust.satisfaction')}</h3>
-              <p className="text-[#b5755c]/60 text-base leading-relaxed">{t('hero.trust.satisfaction.desc')}</p>
-            </div>
-          </div>
+         
         </div>
       </div>
     </section>

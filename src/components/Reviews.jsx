@@ -97,12 +97,6 @@ const Reviews = () => {
           ))}
         </div>
 
-        {/* Add Review Button */}
-        <div className="text-center mt-16">
-          <button className="border-2 border-[#b5755c] text-[#b5755c] px-10 py-4 rounded-full font-semibold hover:bg-[#b5755c] hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl text-lg">
-            {t('reviews.addReview')}
-          </button>
-        </div>
       </div>
     </section>
   )

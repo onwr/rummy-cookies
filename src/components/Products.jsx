@@ -103,7 +103,7 @@ const Products = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20">
           <h2 className="text-5xl font-serif text-[#b5755c] mb-8">{t('products.title')}</h2>
-          <p className="text-[#b5755c]/60 max-w-3xl mx-auto text-xl leading-relaxed">
+          <p className="text-[#b5755c] max-w-3xl mx-auto text-xl leading-relaxed">
             {t('products.subtitle')}
           </p>
         </div>
@@ -145,14 +145,14 @@ const Products = () => {
                       />
                     ))}
                   </div>
-                  <span className="text-sm text-[#b5755c]/60 ml-2">({product.reviews})</span>
+                  <span className="text-sm text-[#b5755c]/80 ml-2">({product.reviews})</span>
                 </div>
                 
                 <h3 className="font-bold text-[#b5755c] mb-3 text-lg leading-tight">{product.name}</h3>
                 
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-2xl font-bold text-[#b5755c]">{product.price}</p>
-                  <span className="text-sm text-[#b5755c]/60">{t('products.stock')}: {product.stock}+</span>
+                  <span className="text-sm text-[#b5755c]/80">{t('products.stock')}: {product.stock}+</span>
                 </div>
 
                 {/* Add to Cart Button */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { 
   HiOutlineTruck, 
@@ -8,13 +8,22 @@ import {
   HiOutlineSearch,
   HiOutlineGlobe,
   HiOutlineMenu,
-  HiOutlineX
+  HiOutlineX,
+  HiOutlineChevronDown,
+  HiOutlineCake,
+  HiOutlineHome,
+  HiOutlineFire,
+  HiOutlineStar,
+  HiOutlineHeart as HiOutlineValentine,
+  HiOutlineOfficeBuilding
 } from 'react-icons/hi'
 import { FaCircle } from 'react-icons/fa'
 
 const Header = () => {
   const { t, i18n } = useTranslation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState(null)
+  const dropdownRef = useRef(null)
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng)
@@ -23,6 +32,57 @@ const Header = () => {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
+
+  const toggleDropdown = (dropdown) => {
+    setActiveDropdown(activeDropdown === dropdown ? null : dropdown)
+  }
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setActiveDropdown(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const categories = [
+    {
+      name: 'Doğum Günü',
+      icon: <HiOutlineCake className="w-5 h-5" />,
+      subcategories: ['Çocuk Doğum Günü', 'Yetişkin Doğum Günü', 'Doğum Günü Paketi']
+    },
+    {
+      name: 'Baby Shower',
+      icon: <HiOutlineHome className="w-5 h-5" />,
+      subcategories: ['Bebek Arabası', 'Bebek Çıngırağı', 'Baby Shower Seti']
+    },
+    {
+      name: 'Halloween',
+      icon: <HiOutlineFire className="w-5 h-5" />,
+      subcategories: ['Cadı Kurabiyesi', 'Balkabağı', 'Korkunç Set']
+    },
+    {
+      name: 'Yılbaşı',
+      icon: <HiOutlineStar className="w-5 h-5" />,
+      subcategories: ['Noel Ağacı', 'Hediye Paketi', 'Yılbaşı Seti']
+    },
+    {
+      name: 'Sevgililer Günü',
+      icon: <HiOutlineValentine className="w-5 h-5" />,
+      subcategories: ['Kalp Kurabiyesi', 'Romantik Set', 'Özel Tasarım']
+    },
+    {
+      name: 'Kurumsal',
+      icon: <HiOutlineOfficeBuilding className="w-5 h-5" />,
+      subcategories: ['Şirket Logosu', 'Kurumsal Hediye', 'Toplantı Seti']
+    }
+  ]
 
   return (
     <header className="w-full shadow-sm">
@@ -84,7 +144,7 @@ const Header = () => {
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-serif text-[#b5755c] font-bold mb-1">RumyCookie</h1>
-                <span className="text-[#b5755c]/60 text-xs sm:text-sm font-medium">{t('header.logo.subtitle')}</span>
+                <span className="text-[#b5755c]/80 text-xs sm:text-sm font-medium">{t('header.logo.subtitle')}</span>
               </div>
             </div>
 
@@ -144,21 +204,58 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="bg-white/90 backdrop-blur-sm border-b border-[#b5755c]/5 shadow-sm">
+      {/* Navigation with Categories */}
+      <nav className="bg-white border-b border-[#b5755c]/5 shadow-lg relative z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-12 py-5">
-            <a href="#" className="text-[#b5755c]/70 font-medium hover:text-[#b5755c] transition-colors duration-200">
+          <div className="hidden lg:flex items-center space-x-8 py-5">
+            <a href="#" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
               Anasayfa
             </a>
-            <a href="#" className="text-[#b5755c]/70 font-medium hover:text-[#b5755c] transition-colors duration-200">
+            
+            {/* Categories Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => toggleDropdown('categories')}
+                className="flex items-center space-x-1 text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200"
+              >
+                <span>Kategoriler</span>
+                <HiOutlineChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {/* Categories Menu */}
+              <div className={`absolute top-full left-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-[#b5755c]/20 transition-all duration-300 transform ${
+                activeDropdown === 'categories' 
+                  ? 'opacity-100 visible translate-y-0' 
+                  : 'opacity-0 invisible translate-y-2'
+              } z-[99999]`}>
+                <div className="p-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    {categories.map((category) => (
+                      <div key={category.name} className="group/item">
+                        <div className="flex items-center space-x-2 p-3 rounded-xl hover:bg-[#fee2ba]/50 transition-colors duration-200 cursor-pointer">
+                          <div className="w-8 h-8 bg-gradient-to-br from-[#fee2ba] to-[#b5755c] rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                            {category.icon}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-[#b5755c] text-sm">{category.name}</h4>
+                            <p className="text-xs text-[#b5755c]/60">{category.subcategories.length} ürün</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <a href="#" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
               Kurumsal
             </a>
-            <a href="#" className="text-[#b5755c]/70 font-medium hover:text-[#b5755c] transition-colors duration-200">
+            <a href="#" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
               Galeri
             </a>
-            <a href="#" className="text-[#b5755c]/70 font-medium hover:text-[#b5755c] transition-colors duration-200">
+            <a href="#" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
               Yorumlarımız
             </a>
           </div>
@@ -166,16 +263,45 @@ const Header = () => {
           {/* Mobile Navigation */}
           <div className={`lg:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
             <div className="py-4 space-y-3">
-              <a href="#" className="block py-2 text-[#b5755c]/70 hover:text-[#b5755c] transition-colors duration-200 font-medium">
+              <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
                 Anasayfa
               </a>
-              <a href="#" className="block py-2 text-[#b5755c]/70 hover:text-[#b5755c] transition-colors duration-200 font-medium">
+              
+              {/* Mobile Categories */}
+              <div>
+                <button 
+                  onClick={() => toggleDropdown('categories')}
+                  className="flex items-center justify-between w-full py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium"
+                >
+                  <span>Kategoriler</span>
+                  <HiOutlineChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {activeDropdown === 'categories' && (
+                  <div className="ml-4 mt-2 space-y-2">
+                    {categories.map((category) => (
+                      <a 
+                        key={category.name} 
+                        href="#" 
+                        className="flex items-center space-x-2 py-2 text-[#b5755c]/60 hover:text-[#b5755c] transition-colors duration-200 text-sm"
+                      >
+                        <div className="w-5 h-5 text-[#b5755c]/60">
+                          {category.icon}
+                        </div>
+                        <span>{category.name}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
                 Kurumsal
               </a>
-              <a href="#" className="block py-2 text-[#b5755c]/70 hover:text-[#b5755c] transition-colors duration-200 font-medium">
+              <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
                 Galeri
               </a>
-              <a href="#" className="block py-2 text-[#b5755c]/70 hover:text-[#b5755c] transition-colors duration-200 font-medium">
+              <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
                 Yorumlarımız
               </a>
             </div>
