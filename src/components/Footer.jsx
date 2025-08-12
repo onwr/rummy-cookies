@@ -61,6 +61,7 @@ const Footer = () => {
               <li><a href="#" className="text-[#b5755c]/70 hover:text-[#b5755c] transition-colors duration-200">{t('footer.quickLinks.products')}</a></li>
               <li><a href="#" className="text-[#b5755c]/70 hover:text-[#b5755c] transition-colors duration-200">{t('footer.quickLinks.customOrder')}</a></li>
               <li><a href="#" className="text-[#b5755c]/70 hover:text-[#b5755c] transition-colors duration-200">{t('footer.quickLinks.about')}</a></li>
+              <li><a href="/sss" className="text-[#b5755c]/70 hover:text-[#b5755c] transition-colors duration-200">{t('footer.quickLinks.faq')}</a></li>
               <li><a href="#" className="text-[#b5755c]/70 hover:text-[#b5755c] transition-colors duration-200">{t('footer.quickLinks.contact')}</a></li>
             </ul>
           </div>

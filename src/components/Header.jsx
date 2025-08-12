@@ -99,8 +99,6 @@ const Header = () => {
             {/* Right side - Links and language */}
             <div className="flex items-center space-x-4 sm:space-x-6">
               <div className="hidden sm:flex items-center space-x-4">
-                <a href="#" className="hover:text-[#b5755c] transition-colors duration-200 font-medium text-xs sm:text-sm">{t('header.utility.about')}</a>
-                <a href="#" className="hover:text-[#b5755c] transition-colors duration-200 font-medium text-xs sm:text-sm">{t('header.utility.support')}</a>
                 <span className="font-semibold text-xs sm:text-sm">{t('header.utility.phone')}</span>
               </div>
               
@@ -209,8 +207,8 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8 py-5">
-            <a href="#" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              Anasayfa
+            <a href="/" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
+              {t('header.nav.home')}
             </a>
             
             {/* Categories Dropdown */}
@@ -219,7 +217,7 @@ const Header = () => {
                 onClick={() => toggleDropdown('categories')}
                 className="flex items-center space-x-1 text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200"
               >
-                <span>Kategoriler</span>
+                <span>{t('header.nav.categories')}</span>
                 <HiOutlineChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''}`} />
               </button>
               
@@ -239,7 +237,7 @@ const Header = () => {
                           </div>
                           <div>
                             <h4 className="font-semibold text-[#b5755c] text-sm">{category.name}</h4>
-                            <p className="text-xs text-[#b5755c]/60">{category.subcategories.length} ürün</p>
+                            <p className="text-xs text-[#b5755c]/60">{category.subcategories.length} {t('header.nav.products')}</p>
                           </div>
                         </div>
                       </div>
@@ -249,14 +247,20 @@ const Header = () => {
               </div>
             </div>
             
-            <a href="#" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              Kurumsal
+            <a href="/hakkimizda" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
+              {t('header.nav.about')}
             </a>
-            <a href="#" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              Galeri
+            <a href="/ozel-siparis" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
+              {t('header.nav.customOrder')}
             </a>
-            <a href="#" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              Yorumlarımız
+            <a href="/galeri" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
+              {t('header.nav.gallery')}
+            </a>
+            <a href="/sss" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
+              {t('header.nav.faq')}
+            </a>
+            <a href="/#yorumlar" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
+              {t('header.nav.reviews')}
             </a>
           </div>
 
@@ -264,7 +268,7 @@ const Header = () => {
           <div className={`lg:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
             <div className="py-4 space-y-3">
               <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                Anasayfa
+                {t('header.nav.home')}
               </a>
               
               {/* Mobile Categories */}
@@ -273,7 +277,7 @@ const Header = () => {
                   onClick={() => toggleDropdown('categories')}
                   className="flex items-center justify-between w-full py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium"
                 >
-                  <span>Kategoriler</span>
+                  <span>{t('header.nav.categories')}</span>
                   <HiOutlineChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''}`} />
                 </button>
                 
@@ -296,13 +300,19 @@ const Header = () => {
               </div>
               
               <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                Kurumsal
+                {t('header.nav.about')}
+              </a>
+              <a href="/ozel-siparis" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
+                {t('header.nav.customOrder')}
+              </a>
+              <a href="/galeri" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
+                {t('header.nav.gallery')}
+              </a>
+              <a href="/sss" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
+                {t('header.nav.faq')}
               </a>
               <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                Galeri
-              </a>
-              <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                Yorumlarımız
+                {t('header.nav.reviews')}
               </a>
             </div>
           </div>

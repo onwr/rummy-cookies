@@ -57,7 +57,7 @@ const Reviews = () => {
   ]
 
   return (
-    <section className="py-24 bg-gradient-to-br from-[#fee2ba]/20 to-white">
+    <section id="yorumlar" className="py-24 bg-gradient-to-br from-[#fee2ba]/20 to-white">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20">
           <h2 className="text-5xl font-serif text-[#b5755c] mb-8">{t('reviews.title')}</h2>
