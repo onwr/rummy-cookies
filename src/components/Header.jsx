@@ -1,325 +1,487 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
-import { 
-  HiOutlineTruck, 
-  HiOutlineHeart, 
-  HiOutlineUser, 
-  HiOutlineShoppingBag, 
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cartAPI, wishlistAPI } from '../services/api';
+import {
+  HiOutlineTruck,
+  HiOutlineHeart,
+  HiOutlineUser,
+  HiOutlineShoppingBag,
   HiOutlineSearch,
   HiOutlineGlobe,
   HiOutlineMenu,
   HiOutlineX,
-  HiOutlineChevronDown,
-  HiOutlineCake,
-  HiOutlineHome,
-  HiOutlineFire,
-  HiOutlineStar,
-  HiOutlineHeart as HiOutlineValentine,
-  HiOutlineOfficeBuilding
-} from 'react-icons/hi'
-import { FaCircle } from 'react-icons/fa'
+} from 'react-icons/hi';
+import { FaCircle, FaHeart, FaTimes } from 'react-icons/fa';
 
 const Header = () => {
-  const { t, i18n } = useTranslation()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [activeDropdown, setActiveDropdown] = useState(null)
-  const dropdownRef = useRef(null)
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+
+  // Sepet sayısını al
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      try {
+        const response = await cartAPI.get();
+        if (response.success) {
+          setCartItemCount(response.data.item_count || 0);
+        }
+      } catch (error) {
+        console.error('Sepet sayısı alınamadı:', error);
+      }
+    };
+
+    fetchCartCount();
+
+    // Sepet güncellemelerini dinle
+    const handleCartUpdate = () => {
+      fetchCartCount();
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate);
+
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, []);
+
+  // Wishlist'i getir
+  const fetchWishlist = async () => {
+    try {
+      setIsWishlistLoading(true);
+      const response = await wishlistAPI.get();
+      if (response.success) {
+        setWishlistItems(response.data.items || []);
+      }
+    } catch (error) {
+      console.error('Wishlist alınamadı:', error);
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  };
+
+  // Wishlist modal'ını aç
+  const openWishlist = () => {
+    setIsWishlistOpen(true);
+    fetchWishlist();
+  };
+
+  // Wishlist'ten ürün çıkar
+  const removeFromWishlist = async (productId) => {
+    try {
+      const response = await wishlistAPI.remove({ product_id: productId });
+      if (response.success) {
+        fetchWishlist(); // Listeyi yenile
+      }
+    } catch (error) {
+      console.error("Wishlist'ten çıkarılamadı:", error);
+    }
+  };
 
   const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng)
-  }
+    i18n.changeLanguage(lng);
+  };
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
-  }
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
-  const toggleDropdown = (dropdown) => {
-    setActiveDropdown(activeDropdown === dropdown ? null : dropdown)
-  }
+  const goToLogin = () => {
+    navigate('/giris');
+  };
 
-  // Click outside to close dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setActiveDropdown(null)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
-
-  const categories = [
-    {
-      name: 'Doğum Günü',
-      icon: <HiOutlineCake className="w-5 h-5" />,
-      subcategories: ['Çocuk Doğum Günü', 'Yetişkin Doğum Günü', 'Doğum Günü Paketi']
-    },
-    {
-      name: 'Baby Shower',
-      icon: <HiOutlineHome className="w-5 h-5" />,
-      subcategories: ['Bebek Arabası', 'Bebek Çıngırağı', 'Baby Shower Seti']
-    },
-    {
-      name: 'Halloween',
-      icon: <HiOutlineFire className="w-5 h-5" />,
-      subcategories: ['Cadı Kurabiyesi', 'Balkabağı', 'Korkunç Set']
-    },
-    {
-      name: 'Yılbaşı',
-      icon: <HiOutlineStar className="w-5 h-5" />,
-      subcategories: ['Noel Ağacı', 'Hediye Paketi', 'Yılbaşı Seti']
-    },
-    {
-      name: 'Sevgililer Günü',
-      icon: <HiOutlineValentine className="w-5 h-5" />,
-      subcategories: ['Kalp Kurabiyesi', 'Romantik Set', 'Özel Tasarım']
-    },
-    {
-      name: 'Kurumsal',
-      icon: <HiOutlineOfficeBuilding className="w-5 h-5" />,
-      subcategories: ['Şirket Logosu', 'Kurumsal Hediye', 'Toplantı Seti']
-    }
-  ]
+  const goToCart = () => {
+    navigate('/sepet');
+  };
 
   return (
-    <header className="w-full shadow-sm">
+    <motion.header
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.8, ease: 'easeOut' }}
+      className='w-full shadow-sm'
+    >
       {/* Utility Bar */}
-      <div className="bg-gradient-to-r from-[#fee2ba] to-[#fef3e2] border-b border-[#b5755c]/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
+      <motion.div
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+        className='border-b border-[#b5755c]/10 bg-gradient-to-r from-[#fee2ba] to-[#fef3e2]'
+      >
+        <div className='mx-auto max-w-7xl px-4 py-3 sm:px-6'>
+          <div className='flex flex-col items-center justify-between space-y-2 sm:flex-row sm:space-y-0'>
             {/* Left side - Delivery info */}
-            <div className="flex items-center space-x-2">
-              <HiOutlineTruck className="w-4 h-4 text-[#b5755c]/70" />
-              <span className="font-medium text-xs sm:text-sm">{t('header.utility.delivery')}</span>
-            </div>
-            
+            <motion.div
+              initial={{ x: -30, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className='flex items-center space-x-2'
+            >
+              <HiOutlineTruck className='h-4 w-4 text-[#b5755c]/70' />
+              <span className='text-xs font-medium sm:text-sm'>{t('header.utility.delivery')}</span>
+            </motion.div>
+
             {/* Right side - Links and language */}
-            <div className="flex items-center space-x-4 sm:space-x-6">
-              <div className="hidden sm:flex items-center space-x-4">
-                <span className="font-semibold text-xs sm:text-sm">{t('header.utility.phone')}</span>
+            <motion.div
+              initial={{ x: 30, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className='flex items-center space-x-4 sm:space-x-6'
+            >
+              <div className='hidden items-center space-x-4 sm:flex'>
+                <span className='text-xs font-semibold sm:text-sm'>
+                  {t('header.utility.phone')}
+                </span>
               </div>
-              
+
               {/* Language Switcher */}
-              <div className="flex items-center space-x-2">
-                <HiOutlineGlobe className="w-4 h-4 text-[#b5755c]/70" />
-                <button
+              <div className='flex items-center space-x-2'>
+                <HiOutlineGlobe className='h-4 w-4 text-[#b5755c]/70' />
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => changeLanguage('tr')}
-                  className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                    i18n.language === 'tr' 
-                      ? 'bg-[#b5755c] text-white shadow-md' 
+                  className={`rounded-lg px-2 py-1 text-xs font-semibold transition-all duration-200 sm:px-3 sm:py-1.5 ${
+                    i18n.language === 'tr'
+                      ? 'bg-[#b5755c] text-white shadow-md'
                       : 'hover:bg-[#b5755c]/10 hover:text-[#b5755c]'
                   }`}
                 >
                   TR
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => changeLanguage('en')}
-                  className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                    i18n.language === 'en' 
-                      ? 'bg-[#b5755c] text-white shadow-md' 
+                  className={`rounded-lg px-2 py-1 text-xs font-semibold transition-all duration-200 sm:px-3 sm:py-1.5 ${
+                    i18n.language === 'en'
+                      ? 'bg-[#b5755c] text-white shadow-md'
                       : 'hover:bg-[#b5755c]/10 hover:text-[#b5755c]'
                   }`}
                 >
                   EN
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Main Header */}
-      <div className="bg-white/95 backdrop-blur-sm border-b border-[#b5755c]/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
-          <div className="flex items-center justify-between">
+      <motion.div
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
+        className='border-b border-[#b5755c]/5 bg-white/95 backdrop-blur-sm'
+      >
+        <div className='mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8'>
+          <div className='flex items-center justify-between'>
             {/* Logo */}
-            <div className="flex items-center space-x-3 sm:space-x-5">
-              <div className="flex items-center">
-                <img src="/logo.png" alt="RumyCookie" className="h-12 w-auto sm:h-16 md:h-20 drop-shadow-sm" />
+            <motion.div
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className='flex items-center space-x-3 sm:space-x-5'
+            >
+              <motion.div whileHover={{ scale: 1.05 }} className='flex items-center'>
+                <img
+                  src='/logo.png'
+                  alt='RumyCookie'
+                  className='h-12 w-auto drop-shadow-sm sm:h-16 md:h-20'
+                />
+              </motion.div>
+              <div className='hidden sm:block'>
+                <h1 className='mb-1 font-serif text-xl font-bold text-[#b5755c] sm:text-2xl md:text-3xl'>
+                  RumyCookie
+                </h1>
+                <span className='text-xs font-medium text-[#b5755c]/80 sm:text-sm'>
+                  {t('header.logo.subtitle')}
+                </span>
               </div>
-              <div className="hidden sm:block">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-serif text-[#b5755c] font-bold mb-1">RumyCookie</h1>
-                <span className="text-[#b5755c]/80 text-xs sm:text-sm font-medium">{t('header.logo.subtitle')}</span>
-              </div>
-            </div>
+            </motion.div>
 
             {/* Search Bar - Hidden on mobile */}
-            <div className="hidden lg:flex flex-1 max-w-lg mx-10">
-              <div className="relative w-full">
+            <motion.div
+              initial={{ y: -30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className='mx-10 hidden max-w-lg flex-1 lg:flex'
+            >
+              <div className='relative w-full'>
                 <input
-                  type="text"
+                  type='text'
                   placeholder={t('header.search.placeholder')}
-                  className="w-full px-5 py-4 pl-14 bg-white/80 border border-[#b5755c]/15 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#b5755c]/20 focus:border-transparent placeholder-[#b5755c]/50 shadow-sm hover:shadow-md transition-all duration-200"
+                  className='w-full rounded-2xl border border-[#b5755c]/15 bg-white/80 px-5 py-4 pl-14 placeholder-[#b5755c]/50 shadow-sm transition-all duration-200 hover:shadow-md focus:border-transparent focus:ring-2 focus:ring-[#b5755c]/20 focus:outline-none'
                 />
-                <HiOutlineSearch className="absolute left-5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#b5755c]/50" />
+                <HiOutlineSearch className='absolute top-1/2 left-5 h-5 w-5 -translate-y-1/2 transform text-[#b5755c]/50' />
               </div>
-            </div>
+            </motion.div>
 
             {/* Icons */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <button className="p-2 sm:p-3 hover:bg-[#fee2ba]/50 rounded-full transition-all duration-200 hover:scale-110">
-                <HiOutlineHeart className="w-5 h-5 sm:w-6 sm:h-6 text-[#b5755c]" />
-              </button>
-              <button className="p-2 sm:p-3 hover:bg-[#fee2ba]/50 rounded-full transition-all duration-200 hover:scale-110">
-                <HiOutlineUser className="w-5 h-5 sm:w-6 sm:h-6 text-[#b5755c]" />
-              </button>
-              <button className="p-2 sm:p-3 hover:bg-[#fee2ba]/50 rounded-full transition-all duration-200 hover:scale-110 relative">
-                <HiOutlineShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-[#b5755c]" />
-                <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2">
-                  <FaCircle className="w-4 h-4 sm:w-6 sm:h-6 text-[#b5755c]" />
-                  <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xs font-bold">0</span>
-                </div>
-              </button>
-              
-              {/* Mobile Menu Button */}
-              <button 
-                onClick={toggleMobileMenu}
-                className="lg:hidden p-2 hover:bg-[#fee2ba]/50 rounded-full transition-all duration-200"
+            <motion.div
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className='flex items-center space-x-2 sm:space-x-4'
+            >
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={openWishlist}
+                className='rounded-full p-2 transition-all duration-200 hover:scale-110 hover:bg-[#fee2ba]/50 sm:p-3'
               >
-                {isMobileMenuOpen ? (
-                  <HiOutlineX className="w-6 h-6 text-[#b5755c]" />
-                ) : (
-                  <HiOutlineMenu className="w-6 h-6 text-[#b5755c]" />
-                )}
-              </button>
-            </div>
+                <HiOutlineHeart className='h-5 w-5 text-[#b5755c] sm:h-6 sm:w-6' />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={goToLogin}
+                className='rounded-full p-2 transition-all duration-200 hover:scale-110 hover:bg-[#fee2ba]/50 sm:p-3'
+              >
+                <HiOutlineUser className='h-5 w-5 text-[#b5755c] sm:h-6 sm:w-6' />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={goToCart}
+                className='relative rounded-full p-2 transition-all duration-200 hover:scale-110 hover:bg-[#fee2ba]/50 sm:p-3'
+              >
+                <HiOutlineShoppingBag className='h-5 w-5 text-[#b5755c] sm:h-6 sm:w-6' />
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.3, delay: 1 }}
+                  className='absolute -top-1 -right-1 sm:-top-2 sm:-right-2'
+                >
+                  <FaCircle className='h-4 w-4 text-[#b5755c] sm:h-6 sm:w-6' />
+                  <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform text-xs font-bold text-[#b5755c]'>
+                    {cartItemCount}
+                  </span>
+                </motion.div>
+              </motion.button>
+
+              {/* Mobile Menu Button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleMobileMenu}
+                className='rounded-full p-2 transition-all duration-200 hover:bg-[#fee2ba]/50 lg:hidden'
+              >
+                <AnimatePresence mode='wait'>
+                  {isMobileMenuOpen ? (
+                    <motion.div
+                      key='close'
+                      initial={{ rotate: -90, opacity: 0 }}
+                      animate={{ rotate: 0, opacity: 1 }}
+                      exit={{ rotate: 90, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <HiOutlineX className='h-6 w-6 text-[#b5755c]' />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key='menu'
+                      initial={{ rotate: 90, opacity: 0 }}
+                      animate={{ rotate: 0, opacity: 1 }}
+                      exit={{ rotate: -90, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <HiOutlineMenu className='h-6 w-6 text-[#b5755c]' />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            </motion.div>
           </div>
 
           {/* Mobile Search Bar */}
-          <div className="lg:hidden mt-4">
-            <div className="relative">
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 1 }}
+            className='mt-4 lg:hidden'
+          >
+            <div className='relative'>
               <input
-                type="text"
+                type='text'
                 placeholder={t('header.search.placeholder')}
-                className="w-full px-4 py-3 pl-12 bg-white/80 border border-[#b5755c]/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#b5755c]/20 focus:border-transparent placeholder-[#b5755c]/50 shadow-sm"
+                className='w-full rounded-xl border border-[#b5755c]/15 bg-white/80 px-4 py-3 pl-12 placeholder-[#b5755c]/50 shadow-sm focus:border-transparent focus:ring-2 focus:ring-[#b5755c]/20 focus:outline-none'
               />
-              <HiOutlineSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#b5755c]/50" />
+              <HiOutlineSearch className='absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 transform text-[#b5755c]/50' />
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Navigation with Categories */}
-      <nav className="bg-white border-b border-[#b5755c]/5 shadow-lg relative z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      {/* Navigation */}
+      <motion.nav
+        initial={{ y: -30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.8, ease: 'easeOut' }}
+        className='border-b border-[#b5755c]/5 bg-white shadow-lg'
+      >
+        <div className='mx-auto max-w-7xl px-4 sm:px-6'>
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8 py-5">
-            <a href="/" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              {t('header.nav.home')}
-            </a>
-            
-            {/* Categories Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => toggleDropdown('categories')}
-                className="flex items-center space-x-1 text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200"
+          <div className='hidden items-center space-x-8 py-5 lg:flex'>
+            {[
+              { href: '/', label: t('header.nav.home') },
+              { href: '/hakkimizda', label: t('header.nav.about') },
+              { href: '/#kategori', label: t('header.nav.categories') },
+              { href: '/ozel-siparis', label: t('header.nav.customOrder') },
+              { href: '/galeri', label: t('header.nav.gallery') },
+              { href: '/sss', label: t('header.nav.faq') },
+            ].map((item, index) => (
+              <motion.a
+                key={item.href}
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.4, delay: 1 + index * 0.1 }}
+                whileHover={{ y: -2 }}
+                href={item.href}
+                className='font-medium text-[#b5755c]/80 transition-colors duration-200 hover:text-[#b5755c]'
               >
-                <span>{t('header.nav.categories')}</span>
-                <HiOutlineChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {/* Categories Menu */}
-              <div className={`absolute top-full left-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-[#b5755c]/20 transition-all duration-300 transform ${
-                activeDropdown === 'categories' 
-                  ? 'opacity-100 visible translate-y-0' 
-                  : 'opacity-0 invisible translate-y-2'
-              } z-[99999]`}>
-                <div className="p-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    {categories.map((category) => (
-                      <div key={category.name} className="group/item">
-                        <div className="flex items-center space-x-2 p-3 rounded-xl hover:bg-[#fee2ba]/50 transition-colors duration-200 cursor-pointer">
-                          <div className="w-8 h-8 bg-gradient-to-br from-[#fee2ba] to-[#b5755c] rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                            {category.icon}
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-[#b5755c] text-sm">{category.name}</h4>
-                            <p className="text-xs text-[#b5755c]/60">{category.subcategories.length} {t('header.nav.products')}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <a href="/hakkimizda" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              {t('header.nav.about')}
-            </a>
-            <a href="/ozel-siparis" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              {t('header.nav.customOrder')}
-            </a>
-            <a href="/galeri" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              {t('header.nav.gallery')}
-            </a>
-            <a href="/sss" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              {t('header.nav.faq')}
-            </a>
-            <a href="/#yorumlar" className="text-[#b5755c]/80 font-medium hover:text-[#b5755c] transition-colors duration-200">
-              {t('header.nav.reviews')}
-            </a>
+                {item.label}
+              </motion.a>
+            ))}
           </div>
 
           {/* Mobile Navigation */}
-          <div className={`lg:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
-            <div className="py-4 space-y-3">
-              <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                {t('header.nav.home')}
-              </a>
-              
-              {/* Mobile Categories */}
-              <div>
-                <button 
-                  onClick={() => toggleDropdown('categories')}
-                  className="flex items-center justify-between w-full py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium"
-                >
-                  <span>{t('header.nav.categories')}</span>
-                  <HiOutlineChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {activeDropdown === 'categories' && (
-                  <div className="ml-4 mt-2 space-y-2">
-                    {categories.map((category) => (
-                      <a 
-                        key={category.name} 
-                        href="#" 
-                        className="flex items-center space-x-2 py-2 text-[#b5755c]/60 hover:text-[#b5755c] transition-colors duration-200 text-sm"
-                      >
-                        <div className="w-5 h-5 text-[#b5755c]/60">
-                          {category.icon}
-                        </div>
-                        <span>{category.name}</span>
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                {t('header.nav.about')}
-              </a>
-              <a href="/ozel-siparis" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                {t('header.nav.customOrder')}
-              </a>
-              <a href="/galeri" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                {t('header.nav.gallery')}
-              </a>
-              <a href="/sss" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                {t('header.nav.faq')}
-              </a>
-              <a href="#" className="block py-2 text-[#b5755c]/80 hover:text-[#b5755c] transition-colors duration-200 font-medium">
-                {t('header.nav.reviews')}
-              </a>
-            </div>
-          </div>
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className='overflow-hidden lg:hidden'
+              >
+                <div className='space-y-3 py-4'>
+                  {[
+                    { href: '/', label: t('header.nav.home') },
+                    { href: '/hakkimizda', label: t('header.nav.about') },
+                    { href: '/ozel-siparis', label: t('header.nav.customOrder') },
+                    { href: '/galeri', label: t('header.nav.gallery') },
+                    { href: '/sss', label: t('header.nav.faq') },
+                    { href: '/#yorumlar', label: t('header.nav.reviews') },
+                  ].map((item, index) => (
+                    <motion.a
+                      key={item.href}
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      href={item.href}
+                      className='block py-2 font-medium text-[#b5755c]/80 transition-colors duration-200 hover:text-[#b5755c]'
+                    >
+                      {item.label}
+                    </motion.a>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </nav>
-    </header>
-  )
-}
+      </motion.nav>
 
-export default Header
+      {/* Wishlist Modal */}
+      <AnimatePresence>
+        {isWishlistOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+            onClick={() => setIsWishlistOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className='relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl'
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className='mb-6 flex items-center justify-between'>
+                <h2 className='text-2xl font-bold text-[#b5755c]'>
+                  {i18n.language === 'tr' ? 'Favorilerim' : 'My Wishlist'}
+                </h2>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsWishlistOpen(false)}
+                  className='rounded-full p-2 text-[#b5755c] hover:bg-[#fee2ba]/50'
+                >
+                  <FaTimes className='h-5 w-5' />
+                </motion.button>
+              </div>
+
+              {/* Content */}
+              {isWishlistLoading ? (
+                <div className='flex items-center justify-center py-12'>
+                  <div className='h-8 w-8 animate-spin rounded-full border-b-2 border-[#b5755c]'></div>
+                </div>
+              ) : wishlistItems.length > 0 ? (
+                <div className='space-y-4'>
+                  {wishlistItems.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      className='flex items-center space-x-4 rounded-lg border border-[#b5755c]/10 p-4'
+                    >
+                      {/* Product Image */}
+                      <div className='h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg'>
+                        <img
+                          src={item.primary_image || '/images/urun1.jfif'}
+                          alt={item.name}
+                          className='h-full w-full object-cover'
+                        />
+                      </div>
+
+                      {/* Product Info */}
+                      <div className='flex-1'>
+                        <h3 className='font-semibold text-[#b5755c]'>{item.name}</h3>
+                        <p className='text-sm text-[#b5755c]/70'>
+                          {i18n.language === 'tr' ? 'Kategori' : 'Category'}: {item.category_name}
+                        </p>
+                        <p className='text-lg font-bold text-[#b5755c]'>₺{item.price}</p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className='flex space-x-2'>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => removeFromWishlist(item.product_id)}
+                          className='rounded-lg bg-red-500 px-3 py-2 text-sm font-medium text-white hover:bg-red-600'
+                        >
+                          {i18n.language === 'tr' ? 'Kaldır' : 'Remove'}
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className='py-12 text-center'>
+                  <FaHeart className='mx-auto mb-4 h-16 w-16 text-[#b5755c]/30' />
+                  <p className='text-lg text-[#b5755c]/70'>
+                    {i18n.language === 'tr'
+                      ? 'Henüz favori ürününüz yok'
+                      : "You don't have any favorite products yet"}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.header>
+  );
+};
+
+export default Header;

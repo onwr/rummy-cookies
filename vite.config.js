@@ -1,4 +1,3 @@
-import tailwindcssPlugin from '@tailwindcss/vite';
 import viteReactPlugin from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
@@ -10,7 +9,6 @@ export default defineConfig({
     commonjsOptions: { transformMixedEsModules: true },
   },
   plugins: [
-    tailwindcssPlugin(),
     viteConfigPaths(),
     viteReactPlugin(),
     // eslint-disable-next-line no-undef
